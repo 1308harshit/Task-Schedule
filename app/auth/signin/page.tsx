@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 import LoginForm from "@/components/LoginForm"
-import SampleUserLogin from "@/components/SampleUserLogin"
 
 export default function SignInPage() {
   return (
@@ -31,55 +30,6 @@ export default function SignInPage() {
                         </Suspense>
                       </div>
 
-                      {/* Divider */}
-                      <div className="relative mb-6">
-                        <div className="absolute inset-0 flex items-center">
-                          <div className="w-full border-t border-gray-300" />
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                          <span className="px-2 bg-white text-gray-500">Or</span>
-                        </div>
-                      </div>
-
-              {/* Existing Users Login */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Login with Sample Users
-                </h3>
-                
-                {/* Admin User */}
-                <SampleUserLogin
-                  email="admin@taskmanager.com"
-                  password="admin123"
-                  label="Login as Admin"
-                  color="bg-red-600 hover:bg-red-700 focus:ring-red-500"
-                  icon="👑"
-                />
-
-                {/* Developer 1 */}
-                <SampleUserLogin
-                  email="developer1@taskmanager.com"
-                  password="dev123"
-                  label="Login as John Developer"
-                  color="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
-                  icon="👨‍💻"
-                />
-
-                {/* Developer 2 */}
-                <SampleUserLogin
-                  email="developer2@taskmanager.com"
-                  password="dev123"
-                  label="Login as Jane Developer"
-                  color="bg-green-600 hover:bg-green-700 focus:ring-green-500"
-                  icon="👩‍💻"
-                />
-              </div>
-
-              <div className="mt-6 text-center">
-                <p className="text-xs text-gray-500">
-                  Sample users for testing the application
-                </p>
-              </div>
             </div>
           </div>
         </div>
