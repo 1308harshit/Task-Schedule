@@ -7,7 +7,9 @@ import CreateProjectModal from "./CreateProjectModal"
 import CreateModuleModal from "./CreateModuleModal"
 import ProjectCard from "./ProjectCard"
 import ModuleCard from "./ModuleCard"
+import AdminTaskCard from "./AdminTaskCard"
 import TaskAssignmentModal from "./TaskAssignmentModal"
+import TaskManagementView from "./TaskManagementView"
 
 interface Project {
   id: number
@@ -63,15 +65,57 @@ interface User {
   role: string
 }
 
+interface Task {
+  id: number
+  title: string
+  description: string | null
+  status: string
+  priority: string
+  estimatedHours: number | null
+  actualHours: number | null
+  startDate: string | null
+  dueDate: string | null
+  completedAt: string | null
+  project: {
+    id: number
+    name: string
+  }
+  module: {
+    id: number
+    name: string
+  } | null
+  functionality: {
+    id: number
+    name: string
+    type: string
+  } | null
+  assignments: {
+    user: {
+      id: number
+      name: string | null
+      email: string
+    }
+  }[]
+  timeLogs: {
+    id: number
+    startTime: string
+    endTime: string | null
+    duration: number | null
+    description: string | null
+  }[]
+}
+
 export default function AdminDashboard() {
   const [projects, setProjects] = useState<Project[]>([])
   const [modules, setModules] = useState<Module[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [showCreateModule, setShowCreateModule] = useState(false)
   const [showTaskAssignment, setShowTaskAssignment] = useState(false)
   const [selectedModule, setSelectedModule] = useState<Module | null>(null)
+  const [activeView, setActiveView] = useState<'overview' | 'tasks'>('overview')
 
   useEffect(() => {
     fetchData()
@@ -79,15 +123,17 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const [projectsRes, modulesRes, usersRes] = await Promise.all([
+      const [projectsRes, modulesRes, tasksRes, usersRes] = await Promise.all([
         fetch('/api/projects'),
         fetch('/api/modules'),
+        fetch('/api/tasks'),
         fetch('/api/users')
       ])
 
-      const [projectsData, modulesData, usersData] = await Promise.all([
+      const [projectsData, modulesData, tasksData, usersData] = await Promise.all([
         projectsRes.json(),
         modulesRes.json(),
+        tasksRes.json(),
         usersRes.json()
       ])
 
@@ -106,6 +152,13 @@ export default function AdminDashboard() {
         setModules([])
       }
 
+      if (tasksRes.ok && Array.isArray(tasksData)) {
+        setTasks(tasksData)
+      } else {
+        console.error('Error fetching tasks:', tasksData.error || 'Unknown error')
+        setTasks([])
+      }
+
       if (usersRes.ok && Array.isArray(usersData)) {
         setUsers(usersData)
       } else {
@@ -116,6 +169,7 @@ export default function AdminDashboard() {
       console.error('Error fetching data:', error)
       setProjects([])
       setModules([])
+      setTasks([])
       setUsers([])
     } finally {
       setLoading(false)
@@ -174,6 +228,18 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleDeleteProject = (projectId: number) => {
+    setProjects(projects.filter(project => project.id !== projectId))
+  }
+
+  const handleDeleteModule = (moduleId: number) => {
+    setModules(modules.filter(module => module.id !== moduleId))
+  }
+
+  const handleDeleteTask = (taskId: number) => {
+    setTasks(tasks.filter(task => task.id !== taskId))
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -188,7 +254,37 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
+      {/* Navigation Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveView('overview')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeView === 'overview'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveView('tasks')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeView === 'tasks'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Task Management
+          </button>
+        </nav>
+      </div>
+
+      {activeView === 'tasks' ? (
+        <TaskManagementView />
+      ) : (
+        <>
+          {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
@@ -294,7 +390,11 @@ export default function AdminDashboard() {
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Projects</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard 
+              key={project.id} 
+              project={project} 
+              onDelete={handleDeleteProject}
+            />
           ))}
         </div>
       </div>
@@ -311,9 +411,29 @@ export default function AdminDashboard() {
                 setSelectedModule(module)
                 setShowTaskAssignment(true)
               }}
+              onDelete={handleDeleteModule}
             />
           ))}
         </div>
+      </div>
+
+      {/* Tasks Section */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Tasks</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tasks.map((task) => (
+            <AdminTaskCard 
+              key={task.id} 
+              task={task} 
+              onDelete={handleDeleteTask}
+            />
+          ))}
+        </div>
+        {tasks.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No tasks found</p>
+          </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -342,6 +462,8 @@ export default function AdminDashboard() {
           }}
           onSubmit={handleAssignTask}
         />
+      )}
+        </>
       )}
     </div>
   )

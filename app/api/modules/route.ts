@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Only admins can create modules
-    if (session.user.role !== UserRole.ADMIN) {
+    if ((session.user as any).role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         description,
         priority: priority || 'MEDIUM',
         projectId: parseInt(projectId),
-        creatorId: parseInt(session.user.id),
+        creatorId: parseInt(session.user.id!),
       },
       include: {
         project: {
@@ -79,6 +79,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(module, { status: 201 })
   } catch (error) {
     console.error('Error creating module:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only admins can delete modules
+    if ((session.user as any).role !== UserRole.ADMIN) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const moduleId = searchParams.get('id')
+
+    if (!moduleId) {
+      return NextResponse.json({ error: 'Module ID is required' }, { status: 400 })
+    }
+
+    // Delete the module (cascade will handle related records)
+    await prisma.module.delete({
+      where: { id: parseInt(moduleId) }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting module:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

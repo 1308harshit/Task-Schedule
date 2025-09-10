@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FolderIcon, UserIcon, PlusIcon } from "@heroicons/react/24/outline"
+import { FolderIcon, UserIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline"
 
 interface Module {
   id: number
@@ -52,12 +52,41 @@ const typeColors = {
 
 export default function ModuleCard({ 
   module, 
-  onAssignTask 
+  onAssignTask,
+  onDelete
 }: { 
   module: Module
   onAssignTask: (module: Module) => void
+  onDelete?: (moduleId: number) => void
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (!onDelete) return
+    
+    if (!confirm(`Are you sure you want to delete the module "${module.name}"? This action cannot be undone.`)) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/modules?id=${module.id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        onDelete(module.id)
+      } else {
+        alert('Failed to delete module')
+      }
+    } catch (error) {
+      console.error('Error deleting module:', error)
+      alert('Failed to delete module')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div className="bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -103,6 +132,17 @@ export default function ModuleCard({
         >
           {isExpanded ? 'Hide' : 'Show'} functionalities
         </button>
+
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+          >
+            <TrashIcon className="h-3 w-3 mr-1" />
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        )}
       </div>
 
       {isExpanded && (

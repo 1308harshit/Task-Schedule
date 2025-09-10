@@ -74,7 +74,7 @@ async function main() {
     },
   })
 
-  // Create Sample Functionalities
+  // Create Sample Functionalities for User Management Module
   const authFunctionality = await prisma.functionality.create({
     data: {
       name: 'User Authentication',
@@ -92,6 +92,87 @@ async function main() {
       type: 'FRONTEND',
       status: 'PLANNING',
       moduleId: userModule.id,
+    },
+  })
+
+  const userValidationFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'User Validation',
+      description: 'Form validation and input sanitization',
+      type: 'FRONTEND',
+      status: 'PLANNING',
+      moduleId: userModule.id,
+    },
+  })
+
+  const userDatabaseFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'User Database Schema',
+      description: 'Database tables and relationships for users',
+      type: 'DATABASE',
+      status: 'COMPLETED',
+      moduleId: userModule.id,
+    },
+  })
+
+  // Create Sample Functionalities for Product Catalog Module
+  const productListingFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'Product Listing',
+      description: 'Display products with pagination and filtering',
+      type: 'FRONTEND',
+      status: 'PLANNING',
+      moduleId: productModule.id,
+    },
+  })
+
+  const productSearchFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'Product Search',
+      description: 'Search functionality with filters and sorting',
+      type: 'BACKEND',
+      status: 'PLANNING',
+      moduleId: productModule.id,
+    },
+  })
+
+  const productApiFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'Product API Endpoints',
+      description: 'REST API for product CRUD operations',
+      type: 'API',
+      status: 'PLANNING',
+      moduleId: productModule.id,
+    },
+  })
+
+  const productDatabaseFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'Product Database Schema',
+      description: 'Database tables for products, categories, and inventory',
+      type: 'DATABASE',
+      status: 'PLANNING',
+      moduleId: productModule.id,
+    },
+  })
+
+  const productIntegrationFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'Payment Integration',
+      description: 'Integration with payment gateways',
+      type: 'INTEGRATION',
+      status: 'PLANNING',
+      moduleId: productModule.id,
+    },
+  })
+
+  const productTestingFunctionality = await prisma.functionality.create({
+    data: {
+      name: 'Product Testing Suite',
+      description: 'Unit and integration tests for product features',
+      type: 'TESTING',
+      status: 'PLANNING',
+      moduleId: productModule.id,
     },
   })
 
@@ -265,7 +346,7 @@ async function main() {
   console.log('✅ Database seeded successfully!')
   console.log(`👤 Created ${3} users (1 admin, 2 developers)`)
   console.log(`📁 Created ${1} project with ${2} modules`)
-  console.log(`⚙️ Created ${2} functionalities`)
+  console.log(`⚙️ Created ${10} functionalities`)
   console.log(`📋 Created ${1} requirement`)
   console.log(`🎨 Created ${1} frontend resource`)
   console.log(`🔧 Created ${1} backend resource`)

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarIcon, UserIcon, FolderIcon } from "@heroicons/react/24/outline"
+import { CalendarIcon, UserIcon, FolderIcon, TrashIcon } from "@heroicons/react/24/outline"
 
 interface Project {
   id: number
@@ -42,12 +42,45 @@ const statusColors = {
   CANCELLED: "bg-gray-100 text-gray-800"
 }
 
-export default function ProjectCard({ project }: { project: Project }) {
+export default function ProjectCard({ 
+  project, 
+  onDelete 
+}: { 
+  project: Project
+  onDelete?: (projectId: number) => void
+}) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Not set"
     return new Date(dateString).toLocaleDateString()
+  }
+
+  const handleDelete = async () => {
+    if (!onDelete) return
+    
+    if (!confirm(`Are you sure you want to delete the project "${project.name}"? This action cannot be undone.`)) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/projects?id=${project.id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        onDelete(project.id)
+      } else {
+        alert('Failed to delete project')
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      alert('Failed to delete project')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -97,12 +130,25 @@ export default function ProjectCard({ project }: { project: Project }) {
         </div>
       </div>
 
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
-      >
-        {isExpanded ? 'Hide' : 'Show'} modules
-      </button>
+      <div className="mt-4 flex justify-between items-center">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          {isExpanded ? 'Hide' : 'Show'} modules
+        </button>
+        
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+          >
+            <TrashIcon className="h-3 w-3 mr-1" />
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        )}
+      </div>
 
       {isExpanded && (
         <div className="mt-4 pt-4 border-t border-gray-200">

@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Only admins can create tasks
-    if (session.user.role !== UserRole.ADMIN) {
+    if ((session.user as any).role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
       const assignments = assignedUserIds.map((userId: number) => ({
         taskId: task.id,
         userId: parseInt(userId.toString()),
-        assignedBy: parseInt(session.user.id),
+        assignedBy: parseInt(session.user.id!),
       }))
 
       await prisma.taskAssignment.createMany({
@@ -189,6 +189,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(task, { status: 201 })
   } catch (error) {
     console.error('Error creating task:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only admins can delete tasks
+    if ((session.user as any).role !== UserRole.ADMIN) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const taskId = searchParams.get('id')
+
+    if (!taskId) {
+      return NextResponse.json({ error: 'Task ID is required' }, { status: 400 })
+    }
+
+    // Delete the task (cascade will handle related records)
+    await prisma.task.delete({
+      where: { id: parseInt(taskId) }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting task:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
