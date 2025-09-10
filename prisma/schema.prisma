@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Task Management System Schema
+// Unified Project Management & Tracking System
 
 generator client {
   provider = "prisma-client-js"
@@ -13,20 +10,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User Management with Role-based Access
 model User {
   id            Int       @id @default(autoincrement())
   name          String?
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  posts         Post[]
+  role          UserRole  @default(DEVELOPER)
+  isActive      Boolean   @default(true)
+  
+  // Relations
   accounts      Account[]
   sessions      Session[]
+  assignedTasks TaskAssignment[]
+  createdProjects Project[] @relation("ProjectCreator")
+  createdModules Module[] @relation("ModuleCreator")
+  createdRequirements Requirement[] @relation("RequirementCreator")
+  createdFrontendResources FrontendResource[] @relation("FrontendCreator")
+  createdBackendResources BackendResource[] @relation("BackendCreator")
+  createdApiEndpoints ApiEndpoint[] @relation("ApiCreator")
+  createdDatabaseTables DatabaseTable[] @relation("DatabaseCreator")
+  notifications Notification[]
+  comments      Comment[]
+  taskTimeLogs  TaskTimeLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+enum UserRole {
+  ADMIN
+  DEVELOPER
+}
+
+// NextAuth.js required models
 model Account {
   userId            Int
   type              String
@@ -58,13 +76,465 @@ model Session {
   updatedAt DateTime @updatedAt
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  authorId  Int
-  author    User    @relation(fields: [authorId], references: [id])
+// Project Management
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  status      ProjectStatus @default(PLANNING)
+  startDate   DateTime?
+  endDate     DateTime?
+  progress    Int      @default(0) // 0-100 percentage
+  
+  // Relations
+  creatorId   Int
+  creator     User     @relation("ProjectCreator", fields: [creatorId], references: [id])
+  modules     Module[]
+  requirements Requirement[]
+  frontendResources FrontendResource[]
+  backendResources BackendResource[]
+  apiEndpoints ApiEndpoint[]
+  databaseTables DatabaseTable[]
+  tasks       Task[]
+  milestones  Milestone[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+// Module Management
+model Module {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  status      ModuleStatus @default(PLANNING)
+  priority    Priority @default(MEDIUM)
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creatorId   Int
+  creator     User     @relation("ModuleCreator", fields: [creatorId], references: [id])
+  functionalities Functionality[]
+  tasks       Task[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ModuleStatus {
+  PLANNING
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+  ON_HOLD
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Functionality Management
+model Functionality {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  type        FunctionalityType
+  status      FunctionalityStatus @default(PLANNING)
+  
+  // Relations
+  moduleId    Int
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum FunctionalityType {
+  FRONTEND
+  BACKEND
+  API
+  DATABASE
+  INTEGRATION
+  TESTING
+}
+
+enum FunctionalityStatus {
+  PLANNING
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+  ON_HOLD
+}
+
+// Requirements Management
+model Requirement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      RequirementStatus @default(DRAFT)
+  priority    Priority @default(MEDIUM)
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creatorId   Int
+  creator     User     @relation("RequirementCreator", fields: [creatorId], references: [id])
+  tasks       Task[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum RequirementStatus {
+  DRAFT
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+// Frontend Resource Management
+model FrontendResource {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        FrontendType
+  path        String?
+  description String?
+  version     String?
+  status      ResourceStatus @default(PLANNING)
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creatorId   Int
+  creator     User     @relation("FrontendCreator", fields: [creatorId], references: [id])
+  tasks       Task[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum FrontendType {
+  PAGE
+  COMPONENT
+  LAYOUT
+  STYLE
+  UTILITY
+  HOOK
+}
+
+// Backend Resource Management
+model BackendResource {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        BackendType
+  path        String?
+  description String?
+  version     String?
+  status      ResourceStatus @default(PLANNING)
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creatorId   Int
+  creator     User     @relation("BackendCreator", fields: [creatorId], references: [id])
+  apiEndpoints ApiEndpoint[]
+  tasks       Task[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum BackendType {
+  CONTROLLER
+  SERVICE
+  MODEL
+  MIDDLEWARE
+  UTILITY
+  CONFIG
+}
+
+enum ResourceStatus {
+  PLANNING
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+  DEPRECATED
+}
+
+// API Management
+model ApiEndpoint {
+  id          Int      @id @default(autoincrement())
+  name        String
+  path        String
+  method      HttpMethod
+  description String?
+  status      ApiStatus @default(PLANNING)
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  backendResourceId Int?
+  backendResource BackendResource? @relation(fields: [backendResourceId], references: [id])
+  creatorId   Int
+  creator     User     @relation("ApiCreator", fields: [creatorId], references: [id])
+  databaseTables DatabaseTableRelation[]
+  tasks       Task[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+  OPTIONS
+  HEAD
+}
+
+enum ApiStatus {
+  PLANNING
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+  DEPRECATED
+}
+
+// Database Schema Management
+model DatabaseTable {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  schema      Json? // Store table schema as JSON
+  status      DatabaseStatus @default(PLANNING)
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creatorId   Int
+  creator     User     @relation("DatabaseCreator", fields: [creatorId], references: [id])
+  apiEndpoints DatabaseTableRelation[]
+  tasks       Task[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DatabaseTableRelation {
+  id          Int      @id @default(autoincrement())
+  apiEndpointId Int
+  apiEndpoint ApiEndpoint @relation(fields: [apiEndpointId], references: [id], onDelete: Cascade)
+  databaseTableId Int
+  databaseTable DatabaseTable @relation(fields: [databaseTableId], references: [id], onDelete: Cascade)
+  operation   DatabaseOperation
+  
+  createdAt DateTime @default(now())
+}
+
+enum DatabaseOperation {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
+enum DatabaseStatus {
+  PLANNING
+  IN_PROGRESS
+  TESTING
+  COMPLETED
+  DEPRECATED
+}
+
+// Task Management
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  priority    Priority @default(MEDIUM)
+  estimatedHours Int?
+  actualHours Int?
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  moduleId    Int?
+  module      Module?  @relation(fields: [moduleId], references: [id])
+  functionalityId Int?
+  functionality Functionality? @relation(fields: [functionalityId], references: [id])
+  requirementId Int?
+  requirement Requirement? @relation(fields: [requirementId], references: [id])
+  frontendResourceId Int?
+  frontendResource FrontendResource? @relation(fields: [frontendResourceId], references: [id])
+  backendResourceId Int?
+  backendResource BackendResource? @relation(fields: [backendResourceId], references: [id])
+  apiEndpointId Int?
+  apiEndpoint ApiEndpoint? @relation(fields: [apiEndpointId], references: [id])
+  databaseTableId Int?
+  databaseTable DatabaseTable? @relation(fields: [databaseTableId], references: [id])
+  
+  assignments TaskAssignment[]
+  timeLogs    TaskTimeLog[]
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DELAYED
+  COMPLETED
+  CANCELLED
+}
+
+// Task Assignment
+model TaskAssignment {
+  id          Int      @id @default(autoincrement())
+  assignedAt  DateTime @default(now())
+  assignedBy  Int // User ID who assigned the task
+  
+  // Relations
+  taskId      Int
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([taskId, userId])
+}
+
+// Time Tracking
+model TaskTimeLog {
+  id          Int      @id @default(autoincrement())
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int? // in minutes
+  description String?
+  
+  // Relations
+  taskId      Int
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Milestones
+model Milestone {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  targetDate  DateTime
+  completedAt DateTime?
+  status      MilestoneStatus @default(PENDING)
+  
+  // Relations
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+// Notifications
+model Notification {
+  id          Int      @id @default(autoincrement())
+  title       String
+  message     String
+  type        NotificationType
+  isRead      Boolean  @default(false)
+  data        Json? // Additional data for the notification
+  
+  // Relations
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  TASK_OVERDUE
+  MILESTONE_REACHED
+  PROJECT_UPDATE
+  COMMENT_ADDED
+  SYSTEM_ALERT
+}
+
+// Comments and Discussions
+model Comment {
+  id          Int      @id @default(autoincrement())
+  content     String
+  isInternal  Boolean  @default(false) // Internal team comments vs client comments
+  
+  // Relations
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   Int?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  moduleId    Int?
+  module      Module?  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  functionalityId Int?
+  functionality Functionality? @relation(fields: [functionalityId], references: [id], onDelete: Cascade)
+  requirementId Int?
+  requirement Requirement? @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  frontendResourceId Int?
+  frontendResource FrontendResource? @relation(fields: [frontendResourceId], references: [id], onDelete: Cascade)
+  backendResourceId Int?
+  backendResource BackendResource? @relation(fields: [backendResourceId], references: [id], onDelete: Cascade)
+  apiEndpointId Int?
+  apiEndpoint ApiEndpoint? @relation(fields: [apiEndpointId], references: [id], onDelete: Cascade)
+  databaseTableId Int?
+  databaseTable DatabaseTable? @relation(fields: [databaseTableId], references: [id], onDelete: Cascade)
+  taskId      Int?
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  milestoneId Int?
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { containsProfanity } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { signIn as nextAuthSignIn } from "@/auth";
 
 export async function publishPost(formData: FormData) {
   const session = await auth();
