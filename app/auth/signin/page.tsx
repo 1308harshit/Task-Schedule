@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { SignInButton } from "@/components/auth"
+import LoginForm from "@/components/LoginForm"
 import SampleUserLogin from "@/components/SampleUserLogin"
 
 export default function SignInPage() {
@@ -24,22 +24,22 @@ export default function SignInPage() {
                 Choose your login method
               </p>
               
-              {/* GitHub OAuth */}
-              <div className="mb-6">
-                <Suspense fallback={<div>Loading...</div>}>
-                  <SignInButton />
-                </Suspense>
-              </div>
+                      {/* Login Form */}
+                      <div className="mb-6">
+                        <Suspense fallback={<div>Loading...</div>}>
+                          <LoginForm />
+                        </Suspense>
+                      </div>
 
-              {/* Divider */}
-              <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or</span>
-                </div>
-              </div>
+                      {/* Divider */}
+                      <div className="relative mb-6">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-300" />
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                          <span className="px-2 bg-white text-gray-500">Or</span>
+                        </div>
+                      </div>
 
               {/* Existing Users Login */}
               <div className="space-y-3">

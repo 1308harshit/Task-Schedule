@@ -91,11 +91,32 @@ export default function AdminDashboard() {
         usersRes.json()
       ])
 
-      setProjects(projectsData)
-      setModules(modulesData)
-      setUsers(usersData)
+      // Check if responses are successful and data is arrays
+      if (projectsRes.ok && Array.isArray(projectsData)) {
+        setProjects(projectsData)
+      } else {
+        console.error('Error fetching projects:', projectsData.error || 'Unknown error')
+        setProjects([])
+      }
+
+      if (modulesRes.ok && Array.isArray(modulesData)) {
+        setModules(modulesData)
+      } else {
+        console.error('Error fetching modules:', modulesData.error || 'Unknown error')
+        setModules([])
+      }
+
+      if (usersRes.ok && Array.isArray(usersData)) {
+        setUsers(usersData)
+      } else {
+        console.error('Error fetching users:', usersData.error || 'Unknown error')
+        setUsers([])
+      }
     } catch (error) {
       console.error('Error fetching data:', error)
+      setProjects([])
+      setModules([])
+      setUsers([])
     } finally {
       setLoading(false)
     }

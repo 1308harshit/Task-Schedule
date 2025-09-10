@@ -5,9 +5,12 @@ import { cookies } from "next/headers"
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("Sample login API called")
     const { email, password } = await request.json()
+    console.log("Login attempt for:", email)
 
     if (!email || !password) {
+      console.log("Missing email or password")
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
@@ -17,13 +20,14 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
+      console.log("User not found:", email)
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // For demo purposes, accept any password
-    if (password !== "admin123" && password !== "dev123") {
-      return NextResponse.json({ error: "Invalid password" }, { status: 401 })
-    }
+    // For demo purposes, accept any password (you can add proper password validation later)
+    // if (password !== "admin123" && password !== "dev123") {
+    //   return NextResponse.json({ error: "Invalid password" }, { status: 401 })
+    // }
 
     // Create a session that NextAuth.js will recognize
     const sessionToken = `demo-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -53,6 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Return success with redirect URL
     const redirectUrl = (user as any).role === "ADMIN" ? "/admin/dashboard" : "/developer/dashboard"
+    console.log("Login successful for:", email, "redirecting to:", redirectUrl)
     return NextResponse.json({ success: true, redirectUrl })
 
   } catch (error) {
