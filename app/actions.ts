@@ -112,8 +112,7 @@ export async function signInWithCredentials(formData: FormData) {
   // For demo purposes, we'll simulate a login by creating a session
   // In a real app, you'd verify the password against a hash
   const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true, name: true, role: true, image: true }
+    where: { email }
   });
 
   if (!user) {
@@ -126,13 +125,14 @@ export async function signInWithCredentials(formData: FormData) {
     throw new Error("Invalid password");
   }
 
-  // Create a session manually (this is a simplified approach for demo)
-  // In a real app, you'd use proper session management
-  const session = await prisma.session.create({
+  // Create a session manually that NextAuth.js will recognize
+  const sessionToken = `demo-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  await prisma.session.create({
     data: {
       userId: user.id,
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      sessionToken: `demo-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      sessionToken: sessionToken
     }
   });
 

@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { SignInButton } from "@/components/auth"
-import { signInWithCredentials } from "@/app/actions"
+import SampleUserLogin from "@/components/SampleUserLogin"
 
 export default function SignInPage() {
   return (
@@ -48,40 +48,31 @@ export default function SignInPage() {
                 </h3>
                 
                 {/* Admin User */}
-                <form action={signInWithCredentials} className="w-full">
-                  <input type="hidden" name="email" value="admin@taskmanager.com" />
-                  <input type="hidden" name="password" value="admin123" />
-                  <button
-                    type="submit"
-                    className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                  >
-                    👑 Login as Admin
-                  </button>
-                </form>
+                <SampleUserLogin
+                  email="admin@taskmanager.com"
+                  password="admin123"
+                  label="Login as Admin"
+                  color="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                  icon="👑"
+                />
 
                 {/* Developer 1 */}
-                <form action={signInWithCredentials} className="w-full">
-                  <input type="hidden" name="email" value="developer1@taskmanager.com" />
-                  <input type="hidden" name="password" value="dev123" />
-                  <button
-                    type="submit"
-                    className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                  >
-                    👨‍💻 Login as John Developer
-                  </button>
-                </form>
+                <SampleUserLogin
+                  email="developer1@taskmanager.com"
+                  password="dev123"
+                  label="Login as John Developer"
+                  color="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+                  icon="👨‍💻"
+                />
 
                 {/* Developer 2 */}
-                <form action={signInWithCredentials} className="w-full">
-                  <input type="hidden" name="email" value="developer2@taskmanager.com" />
-                  <input type="hidden" name="password" value="dev123" />
-                  <button
-                    type="submit"
-                    className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                  >
-                    👩‍💻 Login as Jane Developer
-                  </button>
-                </form>
+                <SampleUserLogin
+                  email="developer2@taskmanager.com"
+                  password="dev123"
+                  label="Login as Jane Developer"
+                  color="bg-green-600 hover:bg-green-700 focus:ring-green-500"
+                  icon="👩‍💻"
+                />
               </div>
 
               <div className="mt-6 text-center">

@@ -22,9 +22,18 @@ export async function GET(request: NextRequest) {
     if (moduleId) where.moduleId = parseInt(moduleId)
     if (status) where.status = status
     if (userId) {
-      where.assignments = {
-        some: {
-          userId: parseInt(userId)
+      if (userId === 'me') {
+        // Use the current user's ID from session
+        where.assignments = {
+          some: {
+            userId: parseInt(session.user.id)
+          }
+        }
+      } else {
+        where.assignments = {
+          some: {
+            userId: parseInt(userId)
+          }
         }
       }
     }
@@ -79,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(tasks)
   } catch (error) {
-    console.error('Error fetching tasks:', error)
+    console.error('Error fetching tasks:', error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

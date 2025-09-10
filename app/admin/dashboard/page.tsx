@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { UserRole } from "@prisma/client"
+// import { UserRole } from "@prisma/client"
 import AdminDashboard from "@/components/admin/AdminDashboard"
 
 export default async function AdminDashboardPage() {
@@ -11,7 +11,7 @@ export default async function AdminDashboardPage() {
     redirect("/auth/signin")
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if ((session.user as any).role !== "ADMIN") {
     redirect("/developer/dashboard")
   }
 
@@ -31,6 +31,15 @@ export default async function AdminDashboardPage() {
               <div className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
                 Admin
               </div>
+              <a
+                href="/api/auth/signout"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </a>
             </div>
           </div>
         </div>

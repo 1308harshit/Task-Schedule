@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { PlusIcon, UsersIcon, FolderIcon, CheckCircleIcon } from "@heroicons/react/24/outline"
+import { PlusIcon, UsersIcon, FolderIcon, CheckCircleIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline"
+import { signOut } from "next-auth/react"
 import CreateProjectModal from "./CreateProjectModal"
 import CreateModuleModal from "./CreateModuleModal"
 import ProjectCard from "./ProjectCard"

@@ -59,9 +59,16 @@ export default function DeveloperDashboard() {
     try {
       const response = await fetch('/api/tasks?userId=me')
       const data = await response.json()
-      setTasks(data)
+      
+      if (response.ok && Array.isArray(data)) {
+        setTasks(data)
+      } else {
+        console.error('Error fetching tasks:', data.error || 'Unknown error')
+        setTasks([]) // Set empty array on error
+      }
     } catch (error) {
       console.error('Error fetching tasks:', error)
+      setTasks([]) // Set empty array on error
     } finally {
       setLoading(false)
     }
