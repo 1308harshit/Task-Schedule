@@ -52,31 +52,52 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, description, projectId, priority } = body
+    const { name, description, projectId, priority, functionalities } = body
 
     if (!name || !projectId) {
       return NextResponse.json({ error: 'Module name and project ID are required' }, { status: 400 })
     }
 
-    const module = await prisma.module.create({
-      data: {
-        name,
-        description,
-        priority: priority || 'MEDIUM',
-        projectId: parseInt(projectId),
-        creatorId: parseInt(session.user.id!),
-      },
-      include: {
-        project: {
-          select: { id: true, name: true }
+    // Create module with functionalities in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the module
+      const module = await tx.module.create({
+        data: {
+          name,
+          description,
+          priority: priority || 'MEDIUM',
+          projectId: parseInt(projectId),
+          creatorId: parseInt(session.user.id!),
         },
-        creator: {
-          select: { id: true, name: true, email: true }
+        include: {
+          project: {
+            select: { id: true, name: true }
+          },
+          creator: {
+            select: { id: true, name: true, email: true }
+          }
         }
+      })
+
+      // Create functionalities if provided
+      if (functionalities && Array.isArray(functionalities) && functionalities.length > 0) {
+        const functionalityData = functionalities.map((func: any) => ({
+          name: func.name,
+          description: func.description,
+          type: func.type,
+          status: func.status,
+          moduleId: module.id
+        }))
+
+        await tx.functionality.createMany({
+          data: functionalityData
+        })
       }
+
+      return module
     })
 
-    return NextResponse.json(module, { status: 201 })
+    return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('Error creating module:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

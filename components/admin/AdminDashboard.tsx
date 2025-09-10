@@ -5,6 +5,7 @@ import { PlusIcon, UsersIcon, FolderIcon, CheckCircleIcon, ArrowRightOnRectangle
 import { signOut } from "next-auth/react"
 import CreateProjectModal from "./CreateProjectModal"
 import CreateModuleModal from "./CreateModuleModal"
+import CreateTaskModal from "./CreateTaskModal"
 import ProjectCard from "./ProjectCard"
 import ModuleCard from "./ModuleCard"
 import AdminTaskCard from "./AdminTaskCard"
@@ -113,6 +114,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [showCreateModule, setShowCreateModule] = useState(false)
+  const [showCreateTask, setShowCreateTask] = useState(false)
   const [showTaskAssignment, setShowTaskAssignment] = useState(false)
   const [selectedModule, setSelectedModule] = useState<Module | null>(null)
   const [activeView, setActiveView] = useState<'overview' | 'tasks'>('overview')
@@ -207,6 +209,23 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error creating module:', error)
+    }
+  }
+
+  const handleCreateTask = async (taskData: any) => {
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskData)
+      })
+
+      if (response.ok) {
+        await fetchData()
+        setShowCreateTask(false)
+      }
+    } catch (error) {
+      console.error('Error creating task:', error)
     }
   }
 
@@ -383,6 +402,13 @@ export default function AdminDashboard() {
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Module
         </button>
+        <button
+          onClick={() => setShowCreateTask(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+        >
+          <PlusIcon className="h-4 w-4 mr-2" />
+          Create Task
+        </button>
       </div>
 
       {/* Projects Section */}
@@ -449,6 +475,16 @@ export default function AdminDashboard() {
           projects={projects}
           onClose={() => setShowCreateModule(false)}
           onSubmit={handleCreateModule}
+        />
+      )}
+
+      {showCreateTask && (
+        <CreateTaskModal
+          projects={projects}
+          modules={modules}
+          users={users.filter(user => user.role === 'DEVELOPER')}
+          onClose={() => setShowCreateTask(false)}
+          onSubmit={handleCreateTask}
         />
       )}
 
