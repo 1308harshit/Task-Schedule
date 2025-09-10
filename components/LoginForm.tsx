@@ -16,7 +16,6 @@ export default function LoginForm() {
     setError(null)
 
     try {
-      console.log("Attempting login for:", email)
       const response = await fetch('/api/auth/sample-login', {
         method: 'POST',
         headers: {
@@ -24,8 +23,6 @@ export default function LoginForm() {
         },
         body: JSON.stringify({ email, password }),
       })
-      console.log("Response status:", response.status)
-      console.log("Response headers:", response.headers)
 
       // Check if response is ok and has content
       if (!response.ok) {
