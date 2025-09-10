@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { SignInButton } from "@/components/auth"
-import { signIn } from "@/app/actions"
+import { signInWithCredentials } from "@/app/actions"
 
 export default function SignInPage() {
   return (
@@ -48,7 +48,7 @@ export default function SignInPage() {
                 </h3>
                 
                 {/* Admin User */}
-                <form action={signIn} className="w-full">
+                <form action={signInWithCredentials} className="w-full">
                   <input type="hidden" name="email" value="admin@taskmanager.com" />
                   <input type="hidden" name="password" value="admin123" />
                   <button
@@ -60,7 +60,7 @@ export default function SignInPage() {
                 </form>
 
                 {/* Developer 1 */}
-                <form action={signIn} className="w-full">
+                <form action={signInWithCredentials} className="w-full">
                   <input type="hidden" name="email" value="developer1@taskmanager.com" />
                   <input type="hidden" name="password" value="dev123" />
                   <button
@@ -72,7 +72,7 @@ export default function SignInPage() {
                 </form>
 
                 {/* Developer 2 */}
-                <form action={signIn} className="w-full">
+                <form action={signInWithCredentials} className="w-full">
                   <input type="hidden" name="email" value="developer2@taskmanager.com" />
                   <input type="hidden" name="password" value="dev123" />
                   <button

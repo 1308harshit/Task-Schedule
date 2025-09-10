@@ -100,3 +100,46 @@ export async function saveDraft(formData: FormData) {
   revalidatePath("/posts");
   redirect(`/posts/${post.id}`);
 }
+
+export async function signInWithCredentials(formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  if (!email || !password) {
+    throw new Error("Email and password are required");
+  }
+
+  // For demo purposes, we'll simulate a login by creating a session
+  // In a real app, you'd verify the password against a hash
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, name: true, role: true, image: true }
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // For demo purposes, we'll accept any password
+  // In a real app, you'd verify the password hash
+  if (password !== "admin123" && password !== "dev123") {
+    throw new Error("Invalid password");
+  }
+
+  // Create a session manually (this is a simplified approach for demo)
+  // In a real app, you'd use proper session management
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      sessionToken: `demo-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    }
+  });
+
+  // Redirect based on role
+  if (user.role === "ADMIN") {
+    redirect("/admin/dashboard");
+  } else {
+    redirect("/developer/dashboard");
+  }
+}
